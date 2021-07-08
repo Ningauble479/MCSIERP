@@ -1,10 +1,16 @@
-var express = require('express');
-var cookieParser = require('cookie-parser');
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const port = 8888 || PORT.env
+const con = require('./config/mysql')
+const { ApolloServer } = require('apollo-server');
+const typeDefs = require('./typeDefs/users')
+const resolvers = require('./resolvers/index')
+const server = new ApolloServer({ typeDefs, resolvers });
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
 
-var app = express();
+const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -17,6 +23,11 @@ app.listen(port, function() {
   console.log("App listening on PORT " + port);
 });
 
+con.connect((err) => {
+  if (err) throw err;
+  console.log("Connected!")
+})
+
 const path = require("path");
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/build")));
@@ -25,3 +36,8 @@ if (process.env.NODE_ENV === "production") {
    res.sendFile(path.join(__dirname, "../client/build/index.html"));
   });
 }
+
+// The `listen` method launches a web server.
+server.listen().then(({ url }) => {
+  console.log(`🚀  Server ready at ${url}`);
+});
